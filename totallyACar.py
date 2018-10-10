@@ -14,8 +14,8 @@ from picamera import PiCamera
 ## Connectivity ##
 SKT_U           = None                # UDP socket anchor
 SKT_T           = None                # TCP socket anchor
-IP_SRC          = "192.168.1.101"     # Local IP
-IP_TRG          = "192.168.1.102"     # Remote IP
+IP_SRC          = "192.168.4.2"       # Local IP
+IP_TRG          = "192.168.4.1"       # Remote IP
 UDP_PORT        = 5005                # UDP send/recieve port
 TCP_PORT        = 5005                # TCP send port
 MSG_UDP         = None                # UDP message variable
