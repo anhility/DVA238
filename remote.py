@@ -8,14 +8,13 @@
 ### Imports ###
 import os, time, socket, threading, random, sys
 import RPi.GPIO as GPIO
-from picamera import PiCamera
 
 ### Global Variables ###
 ## Connectivity ##
 SKT_U           = None                # UDP socket anchor
 SKT_T           = None                # TCP socket anchor
-IP_SRC          = "192.168.4.2"       # Local IP
-IP_TRG          = "192.168.4.1"       # Remote IP
+IP_SRC          = "192.168.4.1"       # Local IP
+IP_TRG          = "192.168.4.2"       # Remote IP
 UDP_PORT        = 5005                # UDP send/recieve port
 TCP_PORT        = 5005                # TCP send port
 MSG_UDP         = None                # UDP message variable
@@ -31,13 +30,13 @@ TIMER_DEAD      = None                # Timer for check if remore is dead
 T_DEAD_MAX      = 4                   # Max time before assumed remote is dead
 
 ## Variables ##
-LED_VALUE       = None                # The value given by remote
 MSG_HELLO       = "hello"             # Hello message
 #MSG_VALUE       = "value"             # Value message
 MSG_TAKEPIC     = "takePic"           # Take picture message
 MSG_TAKEPICF    = "takePicF"          # Take picture with flash message
 POLL_TIME       = 10                  # ms to wait between each loop cycle
-PIN_LED         = 17                  # BCM pin number for LED
+PIN_B1          = 17                  # BCM pin number for button 1
+PIN_B2          = 27                  # BCM pin number for button 2
 #RAND_TYPE       = True                # True: drop 1 of n packets.
                                       # False: send 1 of n packet.
 #RAND_MOD        = 1                   # Modulo for randrange where n >= 1.
@@ -47,13 +46,6 @@ PIN_LED         = 17                  # BCM pin number for LED
 ERR_A_DEAD     = False                # Will be set to true if remote is dead.
 
 ### Functions ###
-
-def sendTCP(data):
-    lock = threading.Lock()
-    lock.acquire()
-    SKT_T.sendto(data, (IP_TRG, TCP_PORT))
-    lock.release()
-    return
 
 def sendUDP(data):
     lock = threading.Lock()
@@ -84,49 +76,50 @@ def listenUDP():
         TIMER_DEAD = time.time()
         if ERR_A_DEAD == True:
             ERR_A_DEAD = False
-    elif MSG_UDP == MSG_TAKEPIC:
-        takeAndSendPic()
-    elif MSG_UDP == MSG_TAKEPICF:
-        takeAndSendPic(True)
     elif time.time() - TIMER_DEAD > T_DEAD_MAX and ERR_A_DEAD == False:
         # If no hello and timer maxed out, set error
+        print("Camera is not responding.")
         ERR_A_DEAD = True
 
     MSG_UDP = None
     return
 
-def updateLamp(state):
-    GPIO.output(PIN_LED, state)
-    return
+def recieveTCP():
+    lock = threading.Lock()
+    lock.acquire()
+    data, conn_address = SKT_T.recvfrom(1024)
+    lock.release()
+    if str(conn_address[0]) == IP_TRG and int(conn_address[1]) == TCP_PORT:
+        return data
+    else:
+        return None
 
-def takeAndSendPic(LED = False):
-    # Flash on
-    if LED == True:
-        updateLamp(True)
+def threadRequestFile():
+    # Requesting a file from target depending on given input.
+    while True:
+        b1 = GPIO.input(PIN_B1)
+        b2 = GPIO.input(PIN_B2)
+        if b1 == False: # Without flash
+            sendUDP(MSG_TAKEPIC)
+            with open("image.jpg", 'w') as picFile:
+                while True:
+                    data = recieveTCP()
+                    if not data: break
 
-    # Takes a picture
-    camera = PiCamera()
-    camera.resolution = (1920, 1080)
-    camera.rotation = 180
-    camera.capture('.image.jpg')
-    camera.close()
-    # Flash off
-    if LED == True:
-        updateLamp(False)
+                    picFile += data
+            picFile.close()
 
-    print("Picture created.")
+        if b2 == False: # With flash
+            sendUDP(MSG_TAKEPICF)
+            with open("image.jpg", 'w') as picFile:
+                while True:
+                    data = recieveTCP()
+                    if not data: break
 
-    f = open('.image.jpg', 'rb')
-    #l = f.read(1024)
-    #while(l):
-    #    sendTCP(l)
-    #    l = f.read(1024)
-    sendTCP(f)
-    f.close()
-    os.remove(".image.jpg")
+                    picFile += data
+            picFile.close()
 
-    print("Picture sent and deleted.")
-    return
+        time.sleep(POLL_TIME / 1000.0)
 
 def threadListenUDP():
     # Listen for UDP packets
@@ -140,21 +133,6 @@ def threadSendHello():
         if time.time() - TIMER_HELLO > T_HELLO_UPDATE:
             sendUDP(MSG_HELLO)
             TIMER_HELLO = time.time()
-
-def threadLampUpdate():
-    # Updates the lamp
-    while True:
-
-        time.sleep(POLL_TIME / 1000.0)
-
-        # Blink if remote is dead
-        if ERR_A_DEAD == True:
-            if (time.time() - TIMER_DEAD)%1 > 0.5:
-                updateLamp(True)
-            else:
-                updateLamp(False)
-        elif ERR_A_DEAD == False:
-            updateLamp(False)
 
 ### Main Function ###
 def main():
@@ -180,8 +158,8 @@ def main():
     ## GPIO Setup ##
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
-    GPIO.setup(PIN_LED, GPIO.OUT)
-    GPIO.output(PIN_LED, False)
+    GPIO.setup(PIN_B1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(PIN_B2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     ### Initialization Complete ###
 
@@ -191,19 +169,19 @@ def main():
     t1 = threading.Thread(
             target=threadSendHello, name="SendHello", daemon=True)
 
-    # Thread for lamp control
-    t2 = threading.Thread(
-            target=threadLampUpdate, name="LampUpdate", daemon=True)
-
     # Thread to listen for UDPs
-    t3 = threading.Thread(
+    t2 = threading.Thread(
             target=threadListenUDP, name="ListenUDP", daemon=True)
+
+    # Thread for input and requesting files.
+    t3 = threading.Thread(
+            target=threadRequestFile, name="RequestFile", daemon=True
+            )
 
     # Start of threads
     t1.start()
     t2.start()
     t3.start()
-
 
     ## Exit gracefully with ^C or ^D ##
     while True:
