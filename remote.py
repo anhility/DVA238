@@ -109,7 +109,7 @@ def threadRequestFile():
                     if not data: break
                     picFile.write(data)
                 
-                    print("Picture saved.")
+                print("Picture saved.")
             picFile.close()
             conn.close()
 
