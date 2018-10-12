@@ -31,6 +31,7 @@ TIMER_DEAD      = None                # Timer for check if remore is dead
 T_DEAD_MAX      = 4                   # Max time before assumed remote is dead
 
 ## Variables ##
+LED_STATE       = False
 LED_VALUE       = None                # The value given by remote
 MSG_HELLO       = "hello"             # Hello message
 #MSG_VALUE       = "value"             # Value message
@@ -102,10 +103,9 @@ def updateLamp(state):
     return
 
 def takeAndSendPic(LED = False):
-    # Flash on
+    global LED_STATE
     if LED == True:
-        updateLamp(True)
-
+        LED_STATE = True
     # Takes a picture
     camera = PiCamera()
     camera.resolution = (1920, 1080)
@@ -114,11 +114,16 @@ def takeAndSendPic(LED = False):
     camera.close()
     # Flash off
     if LED == True:
-        updateLamp(False)
+        LED_STATE = False
 
     print("Picture created.")
 
     with open('.image.jpg', 'rb') as f:
+        global SKT_T
+        SKT_T = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        SKT_T.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        SKT_T.bind((IP_SRC, TCP_PORT))
+
         SKT_T.connect((IP_TRG, TCP_PORT))
         l = f.read(1024)
         while (l):
@@ -158,7 +163,7 @@ def threadLampUpdate():
             else:
                 updateLamp(False)
         elif ERR_A_DEAD == False:
-            updateLamp(False)
+            updateLamp(LED_STATE)
 
 ### Main Function ###
 def main():
@@ -177,8 +182,9 @@ def main():
     SKT_U.bind((IP_SRC, UDP_PORT))
     SKT_U.settimeout(SKT_TO)
 
-    SKT_T = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    SKT_T.bind((IP_SRC, TCP_PORT))
+    #SKT_T = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #SKT_T.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    #SKT_T.bind((IP_SRC, TCP_PORT))
     #SKT_T.settimeout(SKT_TO)
 
     ## GPIO Setup ##
