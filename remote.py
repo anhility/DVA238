@@ -110,6 +110,7 @@ def threadRequestFile():
                     picFile.write(data)
 
             picFile.close()
+            SKT_T.close()
             conn.close()
 
         if b2 == False: # With flash
@@ -122,6 +123,7 @@ def threadRequestFile():
                     picFile.write(data)
 
             picFile.close()
+            SKT_T.close()
             conn.close()
 
         time.sleep(POLL_TIME / 1000.0)
