@@ -75,6 +75,7 @@ def listenUDP():
         # If hello, reset timer and error
         TIMER_DEAD = time.time()
         if ERR_A_DEAD == True:
+            print("Camera alive")
             ERR_A_DEAD = False
     elif time.time() - TIMER_DEAD > T_DEAD_MAX and ERR_A_DEAD == False:
         # If no hello and timer maxed out, set error
@@ -115,7 +116,6 @@ def threadRequestFile():
             sendUDP(MSG_TAKEPICF)
             with open("image.jpg", 'w') as picFile:
                 conn, IP_TRG = SKT_T.accept()
-                while True:
                 while True:
                     data = conn.recv(1024)
                     if not data: break
@@ -158,8 +158,8 @@ def main():
 
     SKT_T = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     SKT_T.bind((IP_SRC, TCP_PORT))
-    SKT_T.settimeout(SKT_TO)
-    SKT_T.listen(1)
+    #SKT_T.settimeout(SKT_TO)
+    SKT_T.listen()
 
     ## GPIO Setup ##
     GPIO.setmode(GPIO.BCM)

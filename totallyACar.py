@@ -125,6 +125,7 @@ def takeAndSendPic(LED = False):
             SKT_T.send(l)
             l = f.read(1024)
         f.close()
+        SKT_T.close()
 
     os.remove(".image.jpg")
 
