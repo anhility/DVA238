@@ -51,7 +51,9 @@ ERR_A_DEAD     = False                # Will be set to true if remote is dead.
 def sendTCP(data):
     lock = threading.Lock()
     lock.acquire()
-    SKT_T.sendto(data, (IP_TRG, TCP_PORT))
+    SKT_T.connect((IP_TRG, TCP_PORT))
+    SKT_T.send(data)
+    SKT_T.close()
     lock.release()
     return
 
