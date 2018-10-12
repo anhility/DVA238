@@ -101,22 +101,22 @@ def threadRequestFile():
         b2 = GPIO.input(PIN_B2)
         if b1 == False: # Without flash
             sendUDP(MSG_TAKEPIC)
-            with open("image.jpg", 'w') as picFile:
+            with open("image.jpg", 'wb') as picFile:
                 while True:
-                    data = recieveTCP()
+                    data = SKT_T.recv(1024)
                     if not data: break
+                    picFile.write(data)
 
-                    picFile += data
             picFile.close()
 
         if b2 == False: # With flash
             sendUDP(MSG_TAKEPICF)
             with open("image.jpg", 'w') as picFile:
                 while True:
-                    data = recieveTCP()
+                    data = SKT_T.recv(1024)
                     if not data: break
+                    picFile.write(data)
 
-                    picFile += data
             picFile.close()
 
         time.sleep(POLL_TIME / 1000.0)

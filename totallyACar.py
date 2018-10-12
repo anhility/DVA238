@@ -48,14 +48,14 @@ ERR_A_DEAD     = False                # Will be set to true if remote is dead.
 
 ### Functions ###
 
-def sendTCP(data):
-    lock = threading.Lock()
-    lock.acquire()
-    SKT_T.connect((IP_TRG, TCP_PORT))
-    SKT_T.send(data)
-    SKT_T.close()
-    lock.release()
-    return
+#def sendTCP(data):
+#    lock = threading.Lock()
+#    lock.acquire()
+#    SKT_T.connect((IP_TRG, TCP_PORT))
+#    SKT_T.send(data)
+#    SKT_T.close()
+#    lock.release()
+#    return
 
 def sendUDP(data):
     lock = threading.Lock()
@@ -118,13 +118,14 @@ def takeAndSendPic(LED = False):
 
     print("Picture created.")
 
-    f = open('.image.jpg', 'rb')
-    #l = f.read(1024)
-    #while(l):
-    #    sendTCP(l)
-    #    l = f.read(1024)
-    sendTCP(f)
-    f.close()
+    with open('.image.jpg', 'rb') as f:
+        SKT_T.connect((IP_TRG, TCP_PORT))
+        l = f.read(1024)
+        while (l):
+            SKT_T.send(l)
+            l = f.read(1024)
+        f.close()
+
     os.remove(".image.jpg")
 
     print("Picture sent and deleted.")
