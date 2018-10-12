@@ -102,22 +102,27 @@ def threadRequestFile():
         if b1 == False: # Without flash
             sendUDP(MSG_TAKEPIC)
             with open("image.jpg", 'wb') as picFile:
+                conn, IP_TRG = SKT_T.accept()
                 while True:
-                    data = SKT_T.recv(1024)
+                    data = conn.recv(1024)
                     if not data: break
                     picFile.write(data)
 
             picFile.close()
+            conn.close()
 
         if b2 == False: # With flash
             sendUDP(MSG_TAKEPICF)
             with open("image.jpg", 'w') as picFile:
+                conn, IP_TRG = SKT_T.accept()
                 while True:
-                    data = SKT_T.recv(1024)
+                while True:
+                    data = conn.recv(1024)
                     if not data: break
                     picFile.write(data)
 
             picFile.close()
+            conn.close()
 
         time.sleep(POLL_TIME / 1000.0)
 

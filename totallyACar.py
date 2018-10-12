@@ -178,7 +178,7 @@ def main():
 
     SKT_T = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     SKT_T.bind((IP_SRC, TCP_PORT))
-    SKT_T.settimeout(SKT_TO)
+    #SKT_T.settimeout(SKT_TO)
 
     ## GPIO Setup ##
     GPIO.setmode(GPIO.BCM)
