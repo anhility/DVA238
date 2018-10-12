@@ -108,22 +108,22 @@ def threadRequestFile():
                     data = conn.recv(1024)
                     if not data: break
                     picFile.write(data)
-
+                
+                    print("Picture saved.")
             picFile.close()
-            SKT_T.close()
             conn.close()
 
         if b2 == False: # With flash
             sendUDP(MSG_TAKEPICF)
-            with open("image.jpg", 'w') as picFile:
+            with open("imageF.jpg", 'wb') as picFile:
                 conn, IP_TRG = SKT_T.accept()
                 while True:
                     data = conn.recv(1024)
                     if not data: break
                     picFile.write(data)
-
+                
+                print("Picture with flash saved.")
             picFile.close()
-            SKT_T.close()
             conn.close()
 
         time.sleep(POLL_TIME / 1000.0)
@@ -161,7 +161,7 @@ def main():
     SKT_T = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     SKT_T.bind((IP_SRC, TCP_PORT))
     #SKT_T.settimeout(SKT_TO)
-    SKT_T.listen()
+    SKT_T.listen(5)
 
     ## GPIO Setup ##
     GPIO.setmode(GPIO.BCM)
