@@ -101,7 +101,8 @@ def threadRequestFile():
         b1 = GPIO.input(PIN_B1)
         b2 = GPIO.input(PIN_B2)
         if b1 == False: # Without flash
-            sendUDP(str(MSG_TAKEPIC =+ '_t' + time.time()))
+            mess = MSG_TAKEPIC + '_t' + time.time()
+            sendUDP(mess)
             with open("image.jpg", 'wb') as picFile:
                 conn, IP_TRG = SKT_T.accept()
                 while True:
@@ -114,7 +115,8 @@ def threadRequestFile():
             conn.close()
 
         if b2 == False: # With flash
-            sendUDP(str(MSG_TAKEPICF =+ '_t' + time.time()))
+            mess = MSG_TAKEPICF + '_t' + time.time()
+            sendUDP(mess)
             with open("imageF.jpg", 'wb') as picFile:
                 conn, IP_TRG = SKT_T.accept()
                 while True:
