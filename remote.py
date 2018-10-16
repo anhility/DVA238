@@ -118,14 +118,16 @@ def threadRequestFile():
             t_end = time.time()
             t_UT = t_end - t_UT
             t_T = t_end - t_T
-            print("Image latency\nUDP+TCP:", t_UT,
-                  "\nTCP:", t_T)
+            print("UDP+TCP:", t_UT,
+                "\nTCP:    ", t_T)
 
         if b2 == False: # With flash
             mess = MSG_TAKEPICF + '_t' + str(time.time())
+            t_UT = time.time)()
             sendUDP(mess)
             with open("imageF.jpg", 'wb') as picFile:
                 conn, IP_TRG = SKT_T.accept()
+                t_T = time.time()
                 while True:
                     data = conn.recv(1024)
                     if not data: break
@@ -134,6 +136,11 @@ def threadRequestFile():
                 print("Picture with flash saved.")
             picFile.close()
             conn.close()
+            t-end = time.time()
+            t_UT = t_end - t_UT
+            t_T = t_end - t_T
+            print("UDP+TCP:", t_UT,
+                "\nTCP:    ", t_T)
 
         time.sleep(POLL_TIME / 1000.0)
 
