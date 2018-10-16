@@ -86,6 +86,7 @@ def listenUDP():
         # If hello, reset timer and error
         TIMER_DEAD = time.time()
         if ERR_A_DEAD == True:
+            print("Remote is alive.")
             ERR_A_DEAD = False
     elif str(MSG_UDP)[7:] == MSG_TAKEPIC:
         print(MSG_UDP)
@@ -95,6 +96,7 @@ def listenUDP():
         takeAndSendPic(True)
     elif time.time() - TIMER_DEAD > T_DEAD_MAX and ERR_A_DEAD == False:
         # If no hello and timer maxed out, set error
+        print("Remote is not responding.")
         ERR_A_DEAD = True
 
     MSG_UDP = None
@@ -176,6 +178,7 @@ def main():
 
     ## Timer Setup ##
     initTime    = time.time()
+    print("initTime: ", initTime)
     TIMER_HELLO = initTime
     TIMER_DEAD  = initTime
 
