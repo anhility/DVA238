@@ -87,9 +87,11 @@ def listenUDP():
         TIMER_DEAD = time.time()
         if ERR_A_DEAD == True:
             ERR_A_DEAD = False
-    elif MSG_UDP == MSG_TAKEPIC:
+    elif str(MSG_UDP)[7:] == MSG_TAKEPIC:
+        print(MSG_UDP)
         takeAndSendPic()
-    elif MSG_UDP == MSG_TAKEPICF:
+    elif str(MSG_UDP)[8:] == MSG_TAKEPICF:
+        print(MSG_UDP)
         takeAndSendPic(True)
     elif time.time() - TIMER_DEAD > T_DEAD_MAX and ERR_A_DEAD == False:
         # If no hello and timer maxed out, set error
