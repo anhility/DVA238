@@ -88,11 +88,13 @@ def listenUDP():
         if ERR_A_DEAD == True:
             print("Remote is alive.")
             ERR_A_DEAD = False
-    elif str(MSG_UDP)[7:] == MSG_TAKEPIC:
-        print(MSG_UDP)
+    elif str(MSG_UDP)[:7] == MSG_TAKEPIC:
+        tmp = time.time() - float(str(MSG_UDP)[9:])
+        print("UDP latency:", tmp)
         takeAndSendPic()
-    elif str(MSG_UDP)[8:] == MSG_TAKEPICF:
-        print(MSG_UDP)
+    elif str(MSG_UDP)[:8] == MSG_TAKEPICF:
+        tmp = float(str(MSG_UDP)[10:])
+        print("UDP latency:", tmp)
         takeAndSendPic(True)
     elif time.time() - TIMER_DEAD > T_DEAD_MAX and ERR_A_DEAD == False:
         # If no hello and timer maxed out, set error

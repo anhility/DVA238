@@ -102,6 +102,7 @@ def threadRequestFile():
         b2 = GPIO.input(PIN_B2)
         if b1 == False: # Without flash
             mess = MSG_TAKEPIC + '_t' + str(time.time())
+            tmp = time.time()
             sendUDP(mess)
             with open("image.jpg", 'wb') as picFile:
                 conn, IP_TRG = SKT_T.accept()
@@ -113,6 +114,8 @@ def threadRequestFile():
                 print("Picture saved.")
             picFile.close()
             conn.close()
+            tmp = time.time() - tmp
+            print("Image latency:", tmp)
 
         if b2 == False: # With flash
             mess = MSG_TAKEPICF + '_t' + str(time.time())
