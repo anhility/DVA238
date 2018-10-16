@@ -123,7 +123,7 @@ def threadRequestFile():
 
         if b2 == False: # With flash
             mess = MSG_TAKEPICF + '_t' + str(time.time())
-            t_UT = time.time)()
+            t_UT = time.time()
             sendUDP(mess)
             with open("imageF.jpg", 'wb') as picFile:
                 conn, IP_TRG = SKT_T.accept()
@@ -136,7 +136,7 @@ def threadRequestFile():
                 print("Picture with flash saved.")
             picFile.close()
             conn.close()
-            t-end = time.time()
+            t_end = time.time()
             t_UT = t_end - t_UT
             t_T = t_end - t_T
             print("UDP+TCP:", t_UT,
