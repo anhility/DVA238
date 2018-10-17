@@ -169,7 +169,7 @@ def threadLampUpdate():
 
 def writeLog(string):
     with open('car_log.csv','a+') as f_log:
-        f_log.write(str(string))
+        f_log.write(string)
     f_log.close()
     return
 
