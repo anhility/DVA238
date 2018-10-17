@@ -120,6 +120,8 @@ def threadRequestFile():
             t_T = t_end - t_T
             print("UDP+TCP:", t_UT,
                 "\nTCP:    ", t_T)
+            str_L = "\"tcpL\"," + str(t_T) + ",\"udpL+tcpL\"," + str(t_UT) + "\n"
+            writeLog(str_L)
 
         if b2 == False: # With flash
             mess = MSG_TAKEPICF + '_t' + str(time.time())
