@@ -162,7 +162,7 @@ def threadSendHello():
             TIMER_HELLO = time.time()
 
 def writeLog(string):
-    with open('remote_log.csv', 'a+') as f_log:
+    with open('log_remote.csv', 'a+') as f_log:
         f_log.write(string)
     f_log.close()
     return

@@ -168,7 +168,7 @@ def threadLampUpdate():
             updateLamp(LED_STATE)
 
 def writeLog(string):
-    with open('car_log.csv','a+') as f_log:
+    with open('log_camera.csv','a+') as f_log:
         f_log.write(string)
     f_log.close()
     return
