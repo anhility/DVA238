@@ -98,29 +98,31 @@ def threadRequestFile():
         b1 = GPIO.input(PIN_B1)
         b2 = GPIO.input(PIN_B2)
         if b1 == False: # Without flash
-            G_COUNTER += 1
-            print("Counter:", G_COUNTER)
-            mess = MSG_TAKEPIC + '_t' + str(time.time())
-            t_UT = time.time()
-            sendUDP(mess)
-            with open("image.jpg", 'wb') as picFile:
-                conn, IP_TRG = SKT_T.accept()
-                t_T = time.time()
-                while True:
-                    data = conn.recv(1024)
-                    if not data: break
-                    picFile.write(data)
+            for i in range(0,50):
+                G_COUNTER += 1
+                # print("Counter:", G_COUNTER)
+                mess = MSG_TAKEPIC + '_t' + str(time.time())
+                t_UT = time.time()
+                sendUDP(mess)
+                with open("image.jpg", 'wb') as picFile:
+                    conn, IP_TRG = SKT_T.accept()
+                    t_T = time.time()
+                    while True:
+                        data = conn.recv(1024)
+                        if not data: break
+                        picFile.write(data)
 
-                print("Picture saved.")
-            picFile.close()
-            conn.close()
-            t_end = time.time()
-            t_UT = t_end - t_UT
-            t_T = t_end - t_T
-            print("UDP+TCP:", t_UT,
-                "\nTCP:    ", t_T)
-            str_L = "\"tcpL\"," + str(t_T) + ",\"udpL+tcpL\"," + str(t_UT) + "\n"
-            writeLog(str_L)
+                    #print("Picture saved.")
+                picFile.close()
+                conn.close()
+                t_end = time.time()
+                t_UT = t_end - t_UT
+                t_T = t_end - t_T
+                #print("UDP+TCP:", t_UT,
+                #    "\nTCP:    ", t_T)
+                str_L = "\"tcpL\"," + str(t_T) + ",\"udpL+tcpL\"," + str(t_UT) + "\n"
+                writeLog(str_L)
+            print("Done")
 
         if b2 == False: # With flash
             G_COUNTER += 1
