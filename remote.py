@@ -37,10 +37,7 @@ MSG_TAKEPICF    = "takePicF"          # Take picture with flash message
 POLL_TIME       = 10                  # ms to wait between each loop cycle
 PIN_B1          = 17                  # BCM pin number for button 1
 PIN_B2          = 27                  # BCM pin number for button 2
-#RAND_TYPE       = True                # True: drop 1 of n packets.
-                                      # False: send 1 of n packet.
-#RAND_MOD        = 1                   # Modulo for randrange where n >= 1.
-                                      # Set to 1 to always send packets.
+G_COUNTER       = 0
 
 ### Error Flags ###
 ERR_A_DEAD     = False                # Will be set to true if remote is dead.
@@ -96,11 +93,14 @@ def recieveTCP():
         return None
 
 def threadRequestFile():
+    global G_COUNTER
     # Requesting a file from target depending on given input.
     while True:
         b1 = GPIO.input(PIN_B1)
         b2 = GPIO.input(PIN_B2)
         if b1 == False: # Without flash
+            G_COUNTER =+ 1
+            print("Counter:", G_COUNTER)
             mess = MSG_TAKEPIC + '_t' + str(time.time())
             t_UT = time.time()
             sendUDP(mess)
