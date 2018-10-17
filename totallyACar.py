@@ -49,15 +49,6 @@ ERR_A_DEAD     = False                # Will be set to true if remote is dead.
 
 ### Functions ###
 
-#def sendTCP(data):
-#    lock = threading.Lock()
-#    lock.acquire()
-#    SKT_T.connect((IP_TRG, TCP_PORT))
-#    SKT_T.send(data)
-#    SKT_T.close()
-#    lock.release()
-#    return
-
 def sendUDP(data):
     lock = threading.Lock()
     lock.acquire()
@@ -88,14 +79,18 @@ def listenUDP():
         if ERR_A_DEAD == True:
             print("Remote is alive.")
             ERR_A_DEAD = False
-    elif str(MSG_UDP)[:7] == MSG_TAKEPIC:
-        tmp = time.time() - float(str(MSG_UDP)[10:])
-        print("UDP latency:", tmp)
-        takeAndSendPic()
     elif str(MSG_UDP)[:8] == MSG_TAKEPICF:
-        tmp = float(str(MSG_UDP)[11:])
-        print("UDP latency:", tmp)
+        u_L = time.time() - float(str(MSG_UDP)[10:])
+        print("UDP latency:", u_L)
+        s_log = "\"udpL\"," + str(u_L) + "\n"
+        writeLog(s_log)
         takeAndSendPic(True)
+    elif str(MSG_UDP)[:7] == MSG_TAKEPIC:
+        u_L = time.time() - float(str(MSG_UDP)[9:])
+        print("UDP latency:", u_L)
+        s_log = "\"udpL\"," + str(u_L) + "\n"
+        writeLog(s_log)
+        takeAndSendPic()
     elif time.time() - TIMER_DEAD > T_DEAD_MAX and ERR_A_DEAD == False:
         # If no hello and timer maxed out, set error
         print("Remote is not responding.")
@@ -110,6 +105,7 @@ def updateLamp(state):
 
 def takeAndSendPic(LED = False):
     global LED_STATE
+
     if LED == True:
         LED_STATE = True
     # Takes a picture
@@ -171,6 +167,12 @@ def threadLampUpdate():
         elif ERR_A_DEAD == False:
             updateLamp(LED_STATE)
 
+def writeLog(string):
+    with open('car_log.csv','a+') as f_log:
+        f_log.write(str(string))
+    f_log.close()
+    return
+
 ### Main Function ###
 def main():
 
@@ -183,6 +185,10 @@ def main():
     print("initTime: ", initTime)
     TIMER_HELLO = initTime
     TIMER_DEAD  = initTime
+
+    ## Print initTime to log ##
+    initL = "\"initT\"," + str(initTime) + "\n"
+    writeLog(initL)
 
     ## Socket Setupd ##
     SKT_U = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

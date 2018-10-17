@@ -141,6 +141,8 @@ def threadRequestFile():
             t_T = t_end - t_T
             print("UDP+TCP:", t_UT,
                 "\nTCP:    ", t_T)
+            str_L = "\"tcpL\"," , str(t_T) + ",\"udpL+tcpL\"," + str(t_UT) + "\n"
+            writeLog(str_L)
 
         time.sleep(POLL_TIME / 1000.0)
 
@@ -157,6 +159,12 @@ def threadSendHello():
             sendUDP(MSG_HELLO)
             TIMER_HELLO = time.time()
 
+def writeLog(string):
+    with open('remote_log.csv', 'a+') as f_log:
+        f_log.write(str(string))
+    f_log.close()
+    return
+
 ### Main Function ###
 def main():
 
@@ -169,6 +177,10 @@ def main():
     print("initTime: ", initTime)
     TIMER_HELLO = initTime
     TIMER_DEAD  = initTime
+
+    ## Print initTime to log ##
+    initL = "\"initT\"," + str(initTime) + "\n"
+    writeLog(initL)
 
     ## Socket Setupd ##
     SKT_U = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
