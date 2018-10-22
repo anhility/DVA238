@@ -19,7 +19,6 @@ UDP_PORT        = 5005                # UDP send/recieve port
 TCP_PORT        = 5005                # TCP send port
 MSG_UDP         = None                # UDP message variable
 ENC_TYPE        = 'UTF-8'             # Message encoding
-#PKT_COPY        = 3                   # Number of copies to send
 SKT_TO          = 0.1                 # Timeout for socket listening
 
 ## Timers ##
@@ -31,7 +30,6 @@ T_DEAD_MAX      = 4                   # Max time before assumed remote is dead
 
 ## Variables ##
 MSG_HELLO       = "hello"             # Hello message
-#MSG_VALUE       = "value"             # Value message
 MSG_TAKEPIC     = "takePic"           # Take picture message
 MSG_TAKEPICF    = "takePicF"          # Take picture with flash message
 POLL_TIME       = 10                  # ms to wait between each loop cycle
@@ -43,6 +41,10 @@ ERR_A_DEAD     = False                # Will be set to true if remote is dead.
 
 ### Functions ###
 
+# Sends the given data to remote host with UDP.
+#
+# @param {string} data - String to send over UDP packet.
+#
 def sendUDP(data):
     lock = threading.Lock()
     lock.acquire()
@@ -51,6 +53,9 @@ def sendUDP(data):
     lock.release()
     return
 
+# Continiously listens after UDP-packets from remote host.
+# Acts depending of what is recieved.
+#
 def listenUDP():
     global MSG_UDP, TIMER_DEAD, ERR_A_DEAD
 
@@ -81,6 +86,9 @@ def listenUDP():
     MSG_UDP = None
     return
 
+# Small function for receiving TCP packets.
+# Unpacks the frame and returns the data if from correct remote host.
+#
 def recieveTCP():
     lock = threading.Lock()
     lock.acquire()
@@ -91,71 +99,106 @@ def recieveTCP():
     else:
         return None
 
+# Threaded function, requests a file for remote host depending on
+# which button is pressed.
+#
 def threadRequestFile():
     G_COUNTER = 0
-    # Requesting a file from target depending on given input.
+    
     while True:
         b1 = GPIO.input(PIN_B1)
         b2 = GPIO.input(PIN_B2)
         if b1 == False: # Without flash
-            for i in range(0,50):
-                G_COUNTER += 1
-                # print("Counter:", G_COUNTER)
-                mess = MSG_TAKEPIC + '_t' + str(time.time())
-                t_UT = time.time()
-                sendUDP(mess)
-                with open("image.jpg", 'wb') as picFile:
-                    conn, IP_TRG = SKT_T.accept()
-                    t_T = time.time()
-                    while True:
-                        data = conn.recv(1024)
-                        if not data: break
-                        picFile.write(data)
+            G_COUNTER += 1
+            print("Counter:", G_COUNTER)
+            # Adds timestamp to UDP message for transfer information.
+            mess = MSG_TAKEPIC + '_t' + str(time.time())
+            # Timestamp for just before request is sent.
+            # Used to measure the whole function.
+            t_UT = time.time()
+            sendUDP(mess)
+            # Tries open or create file.
+            with open("image.jpg", 'wb') as picFile:
+                # Waiting to accept remote connection.
+                conn, IP_TRG = SKT_T.accept()
+                # Second timestamp when connection is established.
+                t_T = time.time()
+                # Short loop that writes recieved data to file.
+                while True:
+                    data = conn.recv(1024)
+                    if not data: break
+                    picFile.write(data)
 
-                    #print("Picture saved.")
-                picFile.close()
-                conn.close()
-                t_end = time.time()
-                t_UT = t_end - t_UT
-                t_T = t_end - t_T
-                #print("UDP+TCP:", t_UT,
-                #    "\nTCP:    ", t_T)
-                str_L = "\"tcpL\"," + str(t_T) + ",\"udpL+tcpL\"," + str(t_UT) + "\n"
-                writeLog(str_L)
+                print("Picture saved.")
+                
+            # Closes file and socket.
+            picFile.close()
+            conn.close()
+            # Final timestamp to measure function time before
+            # writing it to the log.
+            t_end = time.time()
+            t_UT = t_end - t_UT
+            t_T = t_end - t_T
+            #print("UDP+TCP:", t_UT, # debug output
+            #    "\nTCP:    ", t_T)  # debug output
+            
+            # Creates string for log
+            str_L = "\"tcpL\"," + str(t_T) +
+                    ",\"udpL+tcpL\"," + str(t_UT) + "\n"
+            writeLog(str_L)
             print("Done")
 
         if b2 == False: # With flash
             G_COUNTER += 1
             print("Counter:", G_COUNTER)
+            # Adds timestamp to UDP message for transfer information.
             mess = MSG_TAKEPICF + '_t' + str(time.time())
+            # Timestamp for just before request is sent.
+            # Used to measure the whole function.
             t_UT = time.time()
             sendUDP(mess)
+            # Tries open or create file.
             with open("imageF.jpg", 'wb') as picFile:
+                # Waiting to accept remote connection.
                 conn, IP_TRG = SKT_T.accept()
+                # Second timestamp when connection is established.
                 t_T = time.time()
+                # Short loop that writes recieved data to file.
                 while True:
                     data = conn.recv(1024)
                     if not data: break
                     picFile.write(data)
 
                 print("Picture with flash saved.")
+                
+            # Closes file and socket.
             picFile.close()
             conn.close()
+            # Final timestamp to measure function time before
+            # writing it to the log.
             t_end = time.time()
             t_UT = t_end - t_UT
             t_T = t_end - t_T
-            print("UDP+TCP:", t_UT,
-                "\nTCP:    ", t_T)
-            str_L = "\"tcpL\"," + str(t_T) + ",\"udpL+tcpL\"," + str(t_UT) + "\n"
+            #print("UDP+TCP:", t_UT, # debug output
+            #    "\nTCP:    ", t_T)  # debug output
+            
+            # Creates string for log
+            str_L = "\"tcpL\"," + str(t_T) +
+                    ",\"udpL+tcpL\"," + str(t_UT) + "\n"
             writeLog(str_L)
+            print("Done")
 
         time.sleep(POLL_TIME / 1000.0)
 
+# Threaded function, listens for UDP packets.
+#
 def threadListenUDP():
     # Listen for UDP packets
     while True:
         listenUDP()
 
+# Threaded function, continiously sends hello packets to remote host.
+#
 def threadSendHello():
     # Sends hello packets on a timer
     while True:
@@ -164,6 +207,10 @@ def threadSendHello():
             sendUDP(MSG_HELLO)
             TIMER_HELLO = time.time()
 
+# Writes given string to log file.
+#
+# @param {string} string - Line of text to append to log file.
+#
 def writeLog(string):
     with open('log_remote.csv', 'a+') as f_log:
         f_log.write(string)
